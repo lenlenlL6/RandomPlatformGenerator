@@ -2,28 +2,28 @@ local args = {...}
 
 local worldPath = args[1]
 local seed = args[2]
+local worldOption = args[3]
 
 require("love.timer")
+require("love.event")
 local coords = require("world/coords")
 
 local channel1 = love.thread.getChannel("chunkUpdate")
-local channel2 = love.thread.getChannel("chunkLoader")
-local channel3 = love.thread.getChannel("addThread")
 
-function lshift(x, by)
-    return x * 2 ^ by
+local function lshift(x, by)
+    return math.floor(x / 2 ^ by)
 end
 
 while true do
-    local playerX, loadedChunk = table.unpack(channel:pop())
-    if playerX then
-        if tostring(playerX) == "stop" then
-            break
-        end
-        playerX, playerY = coords.screenToWorld(playerX, 0)
-        if not loadedChunk[lshift(playerX, 4)] then
-            local thread = love.thread.newThread("world/chunkLoader.lua")
-            thread:start({lshift(playerX, 4)}, worldPath, seed)
+    if channel1:getCount() ~= 0 then
+        local playerX, loadedChunk = unpack(channel1:pop())
+        playerX = math.floor(playerX / 32)
+        local chunkI = lshift(playerX, 4)
+        for i = -1, 1 do
+            if not loadedChunk[chunkI + i] then
+                local thread = love.thread.newThread("world/chunkLoader.lua")
+                thread:start({chunkI + i}, worldPath, seed, worldOption)
+            end
         end
     end
 end

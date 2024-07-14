@@ -1,3 +1,7 @@
+local function lshift(x, by)
+    return math.floor(x / 2 ^ by)
+end
+
 local world = {}
 
 function world:new(worldName, seed, worldOption)
@@ -21,7 +25,8 @@ function world:new(worldName, seed, worldOption)
     -- thread channel.
     obj.chunkLoaderChannel = love.thread.getChannel("chunkLoader")
     obj.chunkUpdateChannel = love.thread.getChannel("chunkUpdate")
-    obj.addThreadChannel = love.thread.getChannel("addThread")
+    obj.chunkCleanerSChannel = love.thread.getChannel("chunkCleanerSend")
+    obj.chunkCleanerRChannel = love.thread.getChannel("chunkCleanerReceive")
     return obj
 end
 
@@ -35,9 +40,18 @@ function world:update(dt)
             self.loadedChunk[chunkData.x] = chunk:new(chunkData)
         end
     end
+    self.chunkCleanerSChannel:push({self.player.x, self.loadedChunk})
+    local cleaner = self.chunkCleanerRChannel:pop()
+    if cleaner then
+        for _, v in pairs(cleaner) do
+            self.loadedChunk[v] = nil
+        end
+    end
 end
 
 function world:generate()
+    self.chunkCleaner = love.thread.newThread("world/chunkCleaner.lua")
+    self.chunkCleaner:start()
     if self.generated then
         return
     end
@@ -52,7 +66,7 @@ end
 function world:addPlayer(player)
     self.player = player
     self.chunkUpdate = love.thread.newThread("world/chunkUpdate.lua")
-    self.chunkUpdate:start(self.worldPath, self.seed)
+    self.chunkUpdate:start(self.worldPath, self.seed, self.option)
 end
 
 function world:render()
@@ -64,3 +78,5 @@ end
 function world:fire()
     self.chunkUpdateChannel:push({"stop", 5})
 end
+
+return world
