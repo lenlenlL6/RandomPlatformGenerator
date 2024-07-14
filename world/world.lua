@@ -20,10 +20,15 @@ function world:new(worldName, seed, worldOption)
     end
     -- thread channel.
     obj.chunkLoaderChannel = love.thread.getChannel("chunkLoader")
+    obj.chunkUpdateChannel = love.thread.getChannel("chunkUpdate")
+    obj.addThreadChannel = love.thread.getChannel("addThread")
     return obj
 end
 
 function world:update(dt)
+    if self.player then
+        self.chunkUpdateChannel:push({self.player.x, self.loadedChunk})
+    end
     local chunkData = self.chunkLoaderChannel:pop()
     if chunkData then
         if not self.loadedChunk[chunkData.x] then
@@ -43,6 +48,8 @@ end
 
 function world:addPlayer(player)
     self.player = player
+    self.chunkUpdate = love.thread.newThread("world/chunkUpdate.lua")
+    self.chunkUpdate:start(self.worldPath, self.seed)
 end
 
 function world:render()
@@ -52,5 +59,5 @@ function world:render()
 end
 
 function world:fire()
-
+    self.chunkUpdateChannel:push({"stop", 5})
 end

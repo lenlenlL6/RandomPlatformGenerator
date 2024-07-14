@@ -7,6 +7,8 @@ local worldOption = args[4]
 
 local channel1 = love.thread.getChannel("chunkLoader")
 
+local bitser = require("utils/bitser")
+
 local function load(chunkX)
     local filePath = worldPath .. "/chunk_" .. chunkX
     if not love.filesystem.getInfo(filePath) then
