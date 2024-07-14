@@ -4,7 +4,7 @@ function chunk:new(chunkData)
     local obj = {}
     setmetatable(obj, {__index = self})
     obj.x = chunkData.x
-    obj.data = chunkData.y
+    obj.data = chunkData.data
     return obj
 end
 
