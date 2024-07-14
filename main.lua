@@ -10,6 +10,9 @@ function love.load()
         y = 100
     }
     world1 = world:new("testworld", 123456)
+    world1:generate()
+    -- auto load chunk setup.
+    world1:addPlayer(player)
 end
 
 function love.update(dt)

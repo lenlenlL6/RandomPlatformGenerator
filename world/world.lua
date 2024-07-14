@@ -38,6 +38,9 @@ function world:update(dt)
 end
 
 function world:generate()
+    if self.generated then
+        return
+    end
     self.generated = true
     love.filesystem.createDirectory(self.worldPath)
     -- start chunk loader.
