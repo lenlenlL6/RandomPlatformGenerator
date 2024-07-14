@@ -13,6 +13,7 @@ function chunk:render()
         for x, value in pairs(v) do
             if value > 0 then
                 love.graphics.rectangle("fill", self.x * 512 + (x - 1) * 32, (y - 1) * 32 + GAME_HEIGHT / 2)
+            end
         end
     end
 end
